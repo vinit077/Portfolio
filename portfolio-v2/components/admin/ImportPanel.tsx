@@ -20,6 +20,7 @@ type PreviewData = {
   repo_url: string;
   repo_owner: string;
   repo_name: string;
+  demo_url?: string | null;
   primary_lang: string | null;
   last_synced_at: string;
 };
@@ -30,6 +31,7 @@ export function ImportPanel({ onPublish }: { onPublish: () => void }) {
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editTags, setEditTags] = useState<string[]>([]);
+  const [editDemoUrl, setEditDemoUrl] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [fetchLoading, setFetchLoading] = useState(false);
   const [publishLoading, setPublishLoading] = useState(false);
@@ -48,17 +50,14 @@ export function ImportPanel({ onPublish }: { onPublish: () => void }) {
     if (!session) { setFetchError("Not authenticated"); setFetchLoading(false); return; }
 
     try {
-      const res = await fetch(
-        `${SUPABASE_FUNCTION_URL}/functions/v1/import-project`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ repoUrl }),
-        }
-      );
+      const res = await fetch("/api/import-project", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ repoUrl }),
+      });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Failed to fetch repo");
 
@@ -66,6 +65,7 @@ export function ImportPanel({ onPublish }: { onPublish: () => void }) {
       setEditTitle(json.title);
       setEditDesc(json.description);
       setEditTags(json.tags);
+      setEditDemoUrl(json.demo_url ?? "");
     } catch (err: unknown) {
       setFetchError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -81,25 +81,24 @@ export function ImportPanel({ onPublish }: { onPublish: () => void }) {
     if (!session) { setPublishLoading(false); return; }
 
     try {
-      const res = await fetch(
-        `${SUPABASE_FUNCTION_URL}/functions/v1/save-project`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            ...preview,
-            title: editTitle,
-            description: editDesc,
-            tags: editTags,
-            slug: slugify(editTitle),
-            published: true,
-          }),
-        }
-      );
-      if (!res.ok) throw new Error("Failed to publish");
+      const res = await fetch("/api/save-project", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          ...preview,
+          title: editTitle,
+          description: editDesc,
+          tags: editTags,
+          demo_url: editDemoUrl,
+          slug: slugify(editTitle),
+          published: true,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Failed to publish");
       setPublished(true);
       onPublish();
     } catch (err: unknown) {
@@ -243,6 +242,17 @@ export function ImportPanel({ onPublish }: { onPublish: () => void }) {
                 />
               </div>
               <div>
+                <label className="field-label">live demo / website url (optional)</label>
+                <input
+                  className="field-input"
+                  type="url"
+                  value={editDemoUrl}
+                  onChange={(e) => setEditDemoUrl(e.target.value)}
+                  placeholder="https://your-app.vercel.app"
+                  id="edit-demo-url"
+                />
+              </div>
+              <div>
                 <label className="field-label">tags</label>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 10 }}>
                   {editTags.map((t) => (
@@ -309,6 +319,7 @@ export function ImportPanel({ onPublish }: { onPublish: () => void }) {
                   method_badge: "GET",
                   status_code: 200,
                   repo_url: preview.repo_url,
+                  demo_url: editDemoUrl,
                   last_synced_at: preview.last_synced_at,
                 }}
               />

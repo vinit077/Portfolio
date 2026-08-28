@@ -44,7 +44,7 @@ export function ProjectsList({ refreshKey }: { refreshKey: number }) {
   const resync = async (p: Project) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    await fetch(`${SUPABASE_FUNCTION_URL}/functions/v1/resync-project`, {
+    await fetch("/api/resync-project", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

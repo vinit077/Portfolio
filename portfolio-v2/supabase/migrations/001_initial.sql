@@ -1,12 +1,11 @@
 -- ============================================================
 -- Portfolio v2 — Initial Schema
--- Run via: supabase db push
 -- ============================================================
 
 -- Enable required extensions
 create extension if not exists "uuid-ossp";
-create extension if not exists pg_cron;
 create extension if not exists pg_net;
+create extension if not exists pg_cron;
 
 -- ─── PROJECTS ────────────────────────────────────────────────
 create table if not exists projects (
@@ -24,10 +23,13 @@ create table if not exists projects (
   status_code    int not null default 200,
   sort_order     int not null default 0,
   published      boolean not null default false,
+  demo_url       text,
   last_synced_at timestamptz,
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now()
 );
+
+alter table projects add column if not exists demo_url text;
 
 -- Auto-update updated_at
 create or replace function update_updated_at()
@@ -38,25 +40,20 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists projects_updated_at on projects;
 create trigger projects_updated_at
   before update on projects
   for each row execute function update_updated_at();
 
 -- ─── CODING STATS CACHE ──────────────────────────────────────
--- One row per platform, always overwritten on sync (not time-series)
 create table if not exists coding_stats_cache (
   platform       text primary key,           -- 'leetcode' | 'codeforces'
   handle         text not null,
   profile_url    text not null,
-  stats          jsonb not null,             -- see shape in comments below
+  stats          jsonb not null,
   last_synced_at timestamptz not null default now(),
-  last_error     text                        -- last failure, for owner visibility
+  last_error     text
 );
-
--- LeetCode stats shape:
--- { "solved": 312, "easy": [120, 145], "medium": [150, 280], "hard": [42, 210], "acceptance_rate": 61.2 }
--- Codeforces stats shape:
--- { "rating": 1412, "max_rating": 1412, "rank": "pupil", "contests": 6 }
 
 -- ─── SYNC LOG ────────────────────────────────────────────────
 create table if not exists sync_log (
@@ -70,63 +67,41 @@ create table if not exists sync_log (
 
 -- ─── ROW LEVEL SECURITY ──────────────────────────────────────
 
--- Projects: public read (published only), owner full access
+-- Projects RLS
 alter table projects enable row level security;
 
+drop policy if exists "public_read_published" on projects;
 create policy "public_read_published"
   on projects for select
   using (published = true);
 
--- NOTE: Replace <YOUR-AUTH-UID> after you create your owner account in Supabase Auth
--- Get your UID from: Supabase Dashboard → Authentication → Users → copy your user UUID
+drop policy if exists "owner_full_access" on projects;
 create policy "owner_full_access"
   on projects for all
-  using (auth.uid() = '<YOUR-AUTH-UID>'::uuid);
+  using (auth.uid() = 'a1068e61-46f1-41a0-b16f-ff2aec8e94ba'::uuid);
 
--- Coding stats: public read all, owner write
+-- Coding Stats RLS
 alter table coding_stats_cache enable row level security;
 
+drop policy if exists "public_read_coding_stats" on coding_stats_cache;
 create policy "public_read_coding_stats"
   on coding_stats_cache for select
   using (true);
 
+drop policy if exists "owner_write_coding_stats" on coding_stats_cache;
 create policy "owner_write_coding_stats"
   on coding_stats_cache for all
-  using (auth.uid() = '<YOUR-AUTH-UID>'::uuid);
+  using (auth.uid() = 'a1068e61-46f1-41a0-b16f-ff2aec8e94ba'::uuid);
 
--- Sync log: owner read only
+-- Sync Log RLS
 alter table sync_log enable row level security;
 
+drop policy if exists "owner_read_sync_log" on sync_log;
 create policy "owner_read_sync_log"
   on sync_log for all
-  using (auth.uid() = '<YOUR-AUTH-UID>'::uuid);
-
--- ─── SCHEDULED SYNC (pg_cron) ────────────────────────────────
--- Syncs LeetCode + Codeforces stats every 12 hours
--- Also acts as a keepalive ping to prevent Supabase free-tier project pause
--- Run this AFTER you deploy the Edge Functions and have the URLs
-
--- Uncomment and fill in your values after initial setup:
-/*
-select cron.schedule(
-  'sync-coding-stats',
-  '0 */12 * * *',
-  $$
-    select net.http_post(
-      url     := 'https://<YOUR-PROJECT-REF>.functions.supabase.co/sync-coding-stats',
-      headers := jsonb_build_object(
-                   'Authorization', 'Bearer <YOUR-SERVICE-ROLE-KEY>',
-                   'Content-Type', 'application/json'
-                 ),
-      body    := '{}'::jsonb
-    );
-  $$
-);
-*/
+  using (auth.uid() = 'a1068e61-46f1-41a0-b16f-ff2aec8e94ba'::uuid);
 
 -- ─── SEED: Initial projects ───────────────────────────────────
--- Migrate the 2 existing v1 projects into the DB
--- (Skipping repo_url since these may not have public GitHub repos — update as needed)
 insert into projects (
   slug, repo_url, repo_owner, repo_name,
   title, description, tags,

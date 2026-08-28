@@ -15,9 +15,10 @@ interface ProjCardProps {
     | "method_badge"
     | "status_code"
     | "repo_url"
+    | "demo_url"
     | "last_synced_at"
   >;
-  /** When true, shows a GitHub link footer */
+  /** When true, shows GitHub & Live Demo link footers */
   showRepoLink?: boolean;
 }
 
@@ -31,6 +32,7 @@ export function ProjCard({ project, showRepoLink = true }: ProjCardProps) {
     method_badge,
     status_code,
     repo_url,
+    demo_url,
     last_synced_at,
   } = project;
 
@@ -96,7 +98,7 @@ export function ProjCard({ project, showRepoLink = true }: ProjCardProps) {
       </p>
 
       {/* Tags */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: showRepoLink && repo_url ? 16 : 0 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: showRepoLink && (repo_url || demo_url) ? 16 : 0 }}>
         {tags.map((t) => (
           <span key={t} className="tag">
             {t}
@@ -109,8 +111,8 @@ export function ProjCard({ project, showRepoLink = true }: ProjCardProps) {
         )}
       </div>
 
-      {/* GitHub link */}
-      {showRepoLink && repo_url && (
+      {/* Links Footer */}
+      {showRepoLink && (repo_url || demo_url) && (
         <div
           style={{
             marginTop: 16,
@@ -119,28 +121,45 @@ export function ProjCard({ project, showRepoLink = true }: ProjCardProps) {
             color: "var(--text-dim)",
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 16,
+            flexWrap: "wrap",
           }}
         >
-          <MethodBadge method="GET" />
-          <a
-            href={repo_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: "var(--teal)",
-              borderBottom: "1px solid var(--teal-dim)",
-              transition: "border-color 0.15s ease",
-            }}
-            onMouseEnter={(e) =>
-              ((e.target as HTMLElement).style.borderColor = "var(--teal)")
-            }
-            onMouseLeave={(e) =>
-              ((e.target as HTMLElement).style.borderColor = "var(--teal-dim)")
-            }
-          >
-            View on GitHub ↗
-          </a>
+          {demo_url && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <MethodBadge method="POST" />
+              <a
+                href={demo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "var(--amber)",
+                  borderBottom: "1px solid var(--amber-dim, rgba(242,169,59,0.3))",
+                  fontWeight: 600,
+                  transition: "border-color 0.15s ease",
+                }}
+              >
+                Live Demo ↗
+              </a>
+            </div>
+          )}
+          {repo_url && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <MethodBadge method="GET" />
+              <a
+                href={repo_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "var(--teal)",
+                  borderBottom: "1px solid var(--teal-dim)",
+                  transition: "border-color 0.15s ease",
+                }}
+              >
+                View on GitHub ↗
+              </a>
+            </div>
+          )}
         </div>
       )}
     </div>

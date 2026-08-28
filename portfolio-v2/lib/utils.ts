@@ -92,6 +92,7 @@ export type Project = {
   status_code: number;
   sort_order: number;
   published: boolean;
+  demo_url?: string | null;
   last_synced_at: string | null;
   created_at: string;
   updated_at: string;

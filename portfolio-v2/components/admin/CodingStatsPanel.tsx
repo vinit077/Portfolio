@@ -33,13 +33,10 @@ export function CodingStatsPanel() {
     if (!session) { setSyncing(false); return; }
 
     try {
-      const res = await fetch(
-        `${SUPABASE_FUNCTION_URL}/functions/v1/sync-coding-stats`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        }
-      );
+      const res = await fetch("/api/sync-coding-stats", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       const json = await res.json();
       if (res.ok) {
         setSyncResult(`✓ Sync complete — ${json.message ?? "stats updated"}`);
