@@ -32,6 +32,9 @@ export function Hero() {
     const status = statusRef.current;
     if (!body || !status) return;
 
+    body.innerHTML = "";
+    status.textContent = "";
+
     if (prefersReduced) {
       jsonLines.forEach(([k, v]) => {
         const div = document.createElement("div");
@@ -50,7 +53,11 @@ export function Hero() {
     body.appendChild(caret);
 
     let i = 0;
+    let timer: NodeJS.Timeout;
+    let cancelled = false;
+
     const step = () => {
+      if (cancelled) return;
       if (i < jsonLines.length) {
         const [k, v] = jsonLines[i];
         const div = document.createElement("div");
@@ -58,13 +65,19 @@ export function Hero() {
         div.style.whiteSpace = "pre";
         body.insertBefore(div, caret);
         i++;
-        setTimeout(step, 130);
+        timer = setTimeout(step, 130);
       } else {
         caret.remove();
         status.textContent = "200 OK · 38ms";
       }
     };
-    setTimeout(step, 350);
+    timer = setTimeout(step, 350);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      body.innerHTML = "";
+    };
   }, []);
 
   return (
