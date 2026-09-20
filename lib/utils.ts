@@ -97,3 +97,11 @@ export type Project = {
   created_at: string;
   updated_at: string;
 };
+
+export type StackCategory = {
+  id: string;
+  label: string;
+  category: "lang" | "front" | "back" | "data" | "tool" | "concept";
+  chips: string[];
+  sort_order: number;
+};

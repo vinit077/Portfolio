@@ -6,13 +6,15 @@ import { useRouter } from "next/navigation";
 import { ImportPanel } from "@/components/admin/ImportPanel";
 import { ProjectsList } from "@/components/admin/ProjectsList";
 import { CodingStatsPanel } from "@/components/admin/CodingStatsPanel";
+import { StackPanel } from "@/components/admin/StackPanel";
 
-type Tab = "import" | "projects" | "coding";
+type Tab = "import" | "projects" | "coding" | "stack";
 
 const tabs: { id: Tab; label: string; method: string; path: string }[] = [
   { id: "import", label: "Import Project", method: "POST", path: "/admin/projects/import" },
   { id: "projects", label: "All Projects", method: "GET", path: "/admin/projects" },
   { id: "coding", label: "Coding Stats", method: "GET", path: "/admin/coding-profile" },
+  { id: "stack", label: "Stack", method: "GET", path: "/admin/stack" },
 ];
 
 export default function DashboardPage() {
@@ -159,6 +161,7 @@ export default function DashboardPage() {
             <ProjectsList refreshKey={projectsRefreshKey} />
           )}
           {activeTab === "coding" && <CodingStatsPanel />}
+          {activeTab === "stack" && <StackPanel />}
         </div>
       </main>
 
