@@ -4,10 +4,10 @@ export function StructuredData() {
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
-    "@id": "https://vinitmahale.dev/#person",
+    "@id": "https://vinitmahale-dev.vercel.app/#person",
     name: "Vinit A. Mahale",
     alternateName: ["Vinit Mahale", "vinit077"],
-    url: "https://vinitmahale.dev",
+    url: "https://vinitmahale-dev.vercel.app",
     jobTitle: "Java Full Stack Developer",
     description:
       "Java Full Stack Developer specialising in Spring Boot, React, Flutter, and REST APIs. Based in Pune, India.",
@@ -44,13 +44,13 @@ export function StructuredData() {
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://vinitmahale.dev/#website",
-    url: "https://vinitmahale.dev",
+    "@id": "https://vinitmahale-dev.vercel.app/#website",
+    url: "https://vinitmahale-dev.vercel.app",
     name: "Vinit Mahale — Full Stack Developer Portfolio",
     description:
       "Backend-solid, frontend-polished full stack engineering portfolio of Vinit Mahale.",
     author: {
-      "@id": "https://vinitmahale.dev/#person",
+      "@id": "https://vinitmahale-dev.vercel.app/#person",
     },
     inLanguage: "en-US",
   };
@@ -58,14 +58,14 @@ export function StructuredData() {
   const profilePageJsonLd = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
-    "@id": "https://vinitmahale.dev/#profilepage",
-    url: "https://vinitmahale.dev",
+    "@id": "https://vinitmahale-dev.vercel.app/#profilepage",
+    url: "https://vinitmahale-dev.vercel.app",
     name: "Vinit Mahale's Developer Portfolio",
     isPartOf: {
-      "@id": "https://vinitmahale.dev/#website",
+      "@id": "https://vinitmahale-dev.vercel.app/#website",
     },
     mainEntity: {
-      "@id": "https://vinitmahale.dev/#person",
+      "@id": "https://vinitmahale-dev.vercel.app/#person",
     },
   };
 
